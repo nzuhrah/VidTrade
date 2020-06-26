@@ -38,7 +38,8 @@ ui <- fluidPage(
                       
                         h2(strong("Apps User's Guide:")),
                         
-                        h3("Please hover your mouse on the legend and double click to select a country."))),
+                        h3("For Trade Activity: Users can select multiple country to view the trend"),
+                        h3("For Commercial Transport Activity: Please hover your mouse on the legend and double click to select a country."))),
                
                tabPanel("Trade Activity",   
                 # main panel title
@@ -47,6 +48,15 @@ ui <- fluidPage(
     
                 # Show a plot 
                 mainPanel(
+                    
+                    selectizeInput(
+                        inputId = "Country", 
+                        label = "Select a Country", 
+                        choices = unique(tradedata$Country), 
+                        selected = "Angola",
+                        multiple = TRUE
+                    ),  
+                    
                 plotlyOutput("tradechart"))
                 ),
                
@@ -57,6 +67,7 @@ ui <- fluidPage(
                         
                         # Show a plot 
                         mainPanel(
+                            
                             plotlyOutput("transport"))
                ),
                
@@ -101,12 +112,10 @@ server <- function(input, output) {
     output$tradechart <- renderPlotly({
         
         # output plot
-        plot_ly(tradedata,
-                type = "scatter",
-                mode = "lines+markers",
-                x = ~Year_Month, 
-                y= ~Trade.Value, 
-                name = ~Country, width = 1100)
+        plot_ly(tradedata,x = ~Year_Month, y = ~Trade.Value, name=~Country, width = 1100) %>%
+            filter(Country %in% input$Country) %>%
+            group_by(Country) %>%
+            add_lines()
         
     })
 
